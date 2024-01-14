@@ -1,35 +1,49 @@
 import gdb
-from collections import defaultdict
 import re
+import json
 
 # usage
 # gdb -q -ex "source dump_obj.py"
 
-def dump_obj(value_obj:gdb.Value ,type_obj:gdb.Type):
+# Ref:
+# https://sourceware.org/gdb/current/onlinedocs/gdb.html/Types-In-Python.html
+# https://sourceware.org/gdb/current/onlinedocs/gdb.html/Values-From-Inferior.html
+
+def dump_obj(obj_name: str):
+    gdb_value_obj = gdb.parse_and_eval(obj_name)
+    gdb_type_obj = gdb.types.get_basic_type(gdb_value_obj.type)
+    return dump_obj_impl(gdb_value_obj, gdb_type_obj)
+
+def dump_obj_impl(value_obj:gdb.Value, type_obj:gdb.Type):
     if (type_obj.is_scalar or is_string(type_obj)):
         return value_obj.format_string()
-    # obj = defaultdict(lambda: defaultdict)
+
     obj = dict()
-    for f in type_obj.fields():
-        print(f"####{f.name}#{f.type}")
-        type_str = f'{f.type}'
-        if ('_vptr' in f'{f.name}'):
+    for field in type_obj.fields():
+
+        type_str = f'{field.type}'
+        dict_key = f'{field.name}({type_str})'
+        # print(dict_key)
+
+        if ('_vptr' in f'{field.name}'):
             # skip vtable
             continue
-        if (f.is_base_class):
+        if (field.is_base_class):
             # base class
-            obj[f'BaseClass({f.name})'] = dump_obj(value_obj, f.type)
-        elif (is_array(f.type)):
+            obj[f'BaseClass({field.type})'] = dump_obj_impl(value_obj, field.type)
+        elif (is_string(field.type)):
+            obj[dict_key] = f'{value_obj[field.name].format_string()}'
+        elif (is_array(field.type)):
             # array
-            obj[f'{f.name}({type_str})'] = list()
+            obj[dict_key] = list()
             size = int(re.compile('\[(\d+)\]').search(type_str)[1])
             for idx in range(0, size):
-                v_obj = value_obj[f.name][idx]
+                v_obj = value_obj[field.name][idx]
                 t_obj = gdb.types.get_basic_type(v_obj.type)
-                obj[f'{f.name}({type_str})'].append(dump_obj(v_obj, t_obj))
+                obj[dict_key].append(dump_obj_impl(v_obj, t_obj))
         else:
-            # scalar
-            obj[f'{f.name}({type_str})'] = f'{value_obj[f.name]}'
+            # scalar, std::string, struct, class
+            obj[dict_key] = f'{value_obj[field.name]}'
     return obj
 
 
@@ -41,23 +55,17 @@ def is_array(type_obj:gdb.Type):
 
 def is_string(type_obj:gdb.Type):
     type_str = f'{type_obj}'
-    return 'string' in type_str
+    return '::basic_string' in type_str or 'const char *' in type_str
 # build-in is_string_like
     return type_str.is_string_like
-
 
 def driver_func():
     gdb.execute('file main')
     gdb.execute('b anchor')
     gdb.execute('run')
     gdb.execute('finish')
-    # obj = gdb.execute('p obj', to_string=True)
-    # print("###", obj)
-    gdb_obj = gdb.parse_and_eval("obj")
-    # print("####", gdb_obj.type)
-    type_obj = gdb.types.get_basic_type(gdb_obj.type)
-    obj_dict = dump_obj(gdb_obj, type_obj)
-    print(obj_dict)
+    obj_dict = dump_obj("obj")
+    print(json.dumps(obj_dict))
     gdb.execute('c')
     gdb.execute('quit')
 
