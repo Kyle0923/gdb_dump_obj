@@ -8,12 +8,6 @@ import json
 # Brief:
 # convert the C/C++ object specified by obj_name to a Python dictionary object
 # that allows for json print-out or other processing afterward
-#
-# I have tested POD, stl, std::string and Class with virtual inheritance
-# All behave correctly
-# The only two I don't like are the C-style strings: char[] and const char *
-# But given my usecase rarely use these two as strings and char[] are often
-# used as a memory buffer instead of a string, I am leaving them as is
 
 
 # Ref:
@@ -50,6 +44,16 @@ def dump_obj_impl(value_obj:gdb.Value, type_obj:gdb.Type):
                 v_obj = value_obj[field.name][idx]
                 t_obj = gdb.types.get_basic_type(v_obj.type)
                 obj[dict_key].append(dump_obj_impl(v_obj, t_obj))
+        elif (is_stl(field.type)):
+            if (len(type_str) > 30):
+                # trim the name
+                type_reg = re.compile('std::\w+')
+                type_str = type_reg.match(type_str)[0]
+                dict_key = f'{field.name}({type_str})'
+            obj[dict_key] = f'{value_obj[field.name].format_string()}'
+        elif (not field.type.is_scalar):
+            # struct, class
+            obj[dict_key] = dump_obj_impl(value_obj[field.name], field.type)
         else:
             obj[dict_key] = f'{value_obj[field.name]}'
     return obj
@@ -67,12 +71,20 @@ def is_string(type_obj:gdb.Type):
 # build-in is_string_like, require GDB 14.1
     return type_str.is_string_like
 
+def is_stl(type_obj:gdb.Type):
+    type_str = f'{type_obj}'
+    return "std::" in type_str
+
+#######################################################################################
+
 def driver_func():
-    gdb.execute('file test/main') # set executable
+    # setup debug context
+    gdb.execute('file test/test1') # set executable
     gdb.execute('b anchor') # set breakpoint
     gdb.execute('run')
     gdb.execute('finish')
 
+    # retrieve variable
     var_name = "obj"
     obj_dict = dump_obj(var_name)
     print()

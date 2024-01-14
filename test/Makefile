@@ -1,10 +1,13 @@
+# build the test code
+# remember -g
+ARTIFACTS := test1 test2
 
-OUT := main
+all: $(ARTIFACTS)
 
-all:
-	g++ main.cpp -g -o $(OUT)
+% : %.cpp
+	g++ $< -g -o $@
 
 clean:
-	rm -fr $(OUT)
+	rm -fr $(ARTIFACTS)
 
 
