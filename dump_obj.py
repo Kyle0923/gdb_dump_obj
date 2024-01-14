@@ -27,12 +27,6 @@ def dump_obj(value_obj:gdb.Value ,type_obj:gdb.Type):
                 v_obj = value_obj[f.name][idx]
                 t_obj = gdb.types.get_basic_type(v_obj.type)
                 obj[f'{f.name}({type_str})'].append(dump_obj(v_obj, t_obj))
-        elif (is_string(f.type)):
-            # string
-            obj[f'{f.name}({type_str})'] = dump_obj(value_obj[f.name], f.type)
-        elif (not f.type.is_scalar):
-            # struct, class
-            obj[f'{f.name}({type_str})'] = dump_obj(value_obj[f.name], f.type)
         else:
             # scalar
             obj[f'{f.name}({type_str})'] = f'{value_obj[f.name]}'
