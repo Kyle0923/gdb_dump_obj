@@ -5,6 +5,17 @@ import json
 # usage
 # gdb -q -ex "source dump_obj.py"
 
+# Brief:
+# convert the C/C++ object specified by obj_name to a Python dictionary object
+# that allows for json print-out or other processing afterward
+#
+# I have tested POD, stl, std::string and Class with virtual inheritance
+# All behave correctly
+# The only two I don't like are the C-style strings: char[] and const char *
+# But given my usecase rarely use these two as strings and char[] are often
+# used as a memory buffer instead of a string, I am leaving them as is
+
+
 # Ref:
 # https://sourceware.org/gdb/current/onlinedocs/gdb.html/Types-In-Python.html
 # https://sourceware.org/gdb/current/onlinedocs/gdb.html/Values-From-Inferior.html
@@ -31,8 +42,6 @@ def dump_obj_impl(value_obj:gdb.Value, type_obj:gdb.Type):
         if (field.is_base_class):
             # base class
             obj[f'BaseClass({field.type})'] = dump_obj_impl(value_obj, field.type)
-        elif (is_string(field.type)):
-            obj[dict_key] = f'{value_obj[field.name].format_string()}'
         elif (is_array(field.type)):
             # array
             obj[dict_key] = list()
@@ -42,7 +51,6 @@ def dump_obj_impl(value_obj:gdb.Value, type_obj:gdb.Type):
                 t_obj = gdb.types.get_basic_type(v_obj.type)
                 obj[dict_key].append(dump_obj_impl(v_obj, t_obj))
         else:
-            # scalar, std::string, struct, class
             obj[dict_key] = f'{value_obj[field.name]}'
     return obj
 
@@ -50,22 +58,28 @@ def dump_obj_impl(value_obj:gdb.Value, type_obj:gdb.Type):
 def is_array(type_obj:gdb.Type):
     type_str = f'{type_obj}'
     return '[' in type_str
-# build-in is_array_like
+# build-in is_array_like, require GDB 14.1
     return type_obj.is_array_like
 
 def is_string(type_obj:gdb.Type):
     type_str = f'{type_obj}'
     return '::basic_string' in type_str or 'const char *' in type_str
-# build-in is_string_like
+# build-in is_string_like, require GDB 14.1
     return type_str.is_string_like
 
 def driver_func():
-    gdb.execute('file main')
-    gdb.execute('b anchor')
+    gdb.execute('file test/main') # set executable
+    gdb.execute('b anchor') # set breakpoint
     gdb.execute('run')
     gdb.execute('finish')
-    obj_dict = dump_obj("obj")
+
+    var_name = "obj"
+    obj_dict = dump_obj(var_name)
+    print()
+    print("Dumpping object:", var_name)
     print(json.dumps(obj_dict))
+    print()
+
     gdb.execute('c')
     gdb.execute('quit')
 

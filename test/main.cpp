@@ -1,7 +1,7 @@
-#include <iostream>
-#include <typeinfo>
-#include <cxxabi.h>
 #include <string>
+#include <vector>
+#include <map>
+#include <set>
 
 class MyDataClass {
     enum Month_t {
@@ -28,6 +28,10 @@ class MyDerivedClass : public MyBaseClass {
         Sat,
         Sun
     };
+    union Num_t {
+        int int_val;
+        float f_val;
+    };
 
     Day_t dd[2] = {Day_t::Sat, Day_t::Wed};
     MyDataClass data[2];
@@ -35,6 +39,12 @@ class MyDerivedClass : public MyBaseClass {
     int list[3] = {1,2,3};
     std::string my_str[4] = {"value1", "value2", "value3", "value4"};
     char* p = nullptr;
+    // const char str[12] = {'s', 't', 'r', 'i', 'n', 'g', ' ', 'c', 'o', 'n', 's', 't'};
+    const char* str = "string const";
+    Num_t num_union = {.int_val = 1};
+    std::vector<int> vec = {1,2,3};
+    std::map<std::string, float> m = { {"1", 1.1}, {"2", 2.2}, {"3",3.3}};
+    std::set<Day_t> s = {Day_t::Mon, Day_t::Sat, Day_t::Thurs};
 };
 
 void anchor() {
@@ -43,25 +53,6 @@ void anchor() {
 
 int main() {
     MyDerivedClass obj;
-    // MyBaseClass* basePtr = new MyDerivedClass();
-
-    // // Using typeid to get information about the type
-    // const std::type_info& typeInfo = typeid(*basePtr);
-
-    // // Demangling the type information
-    // int status;
-    // char* demangledName = abi::__cxa_demangle(typeInfo.name(), nullptr, nullptr, &status);
-
-    // if (status == 0) {
-    //     std::cout << "Demangled Type: " << demangledName << std::endl;
-    //     free(demangledName);  // Remember to free the allocated memory
-    // } else {
-    //     std::cerr << "Demangling failed!" << std::endl;
-    // }
-
-    // // Don't forget to delete the allocated object
-    // delete basePtr;
-
     anchor();
     return 0;
 }
