@@ -14,7 +14,8 @@ import json
 # https://sourceware.org/gdb/current/onlinedocs/gdb.html/Types-In-Python.html
 # https://sourceware.org/gdb/current/onlinedocs/gdb.html/Values-From-Inferior.html
 
-std_string_type = 'std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> '
+string_type = gdb.lookup_type("std::string")
+std_string_type = f'{string_type.strip_typedefs()}'
 
 def dump_obj(obj_name: str):
     gdb_value_obj = gdb.parse_and_eval(obj_name)
