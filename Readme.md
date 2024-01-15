@@ -6,9 +6,7 @@ Important!!
 
 Tested POD, union, stl, std::string, Enum and Class with virtual inheritance
 
-C-style strings (char[] and const char *) are not well formatted, but given my usecase rarely use these two as strings and char[] are often used as a memory buffer instead, I am leaving them as is  
-
-STL containers could also use more handlings, but again, my usage is mostly on POD, so I am leaving the STLs to the GDB printer function
+C-style strings (char[] and const char *) are treated as strings, if you are using them as buffers, you need to change the handling for these types  
 
 # usage
 update the `driver_func()` in dump_obj.py to set up the debugging context  
@@ -29,8 +27,9 @@ class MyData {
     int i_data = 1;
     float f_data = 3.14;
     char* p = nullptr;
+    const char* str = "const string";
     Nested_t nested;
-    Day_t day[2] = {Mon, Sat};
+    Day_t day_enum[2] = {Mon, Sat};
 };
 
 MyDataClass obj;
@@ -39,13 +38,14 @@ MyDataClass obj;
 This will generate the following JSON string (formatted externally)
 ```
 {
-  "i_data(int)": "1",
-  "f_data(float)": "3.1400001",
-  "p(char *)": "0x0",
+  "i_data(int)": 1,
+  "f_data(float)": 3.1400001,
+  "p(char *)": "((nullptr))",
+  "str(const char *)": "const string",
   "nested(MyData::Nested_t)": {
-    "nested_int(int)": "2"
+    "nested_int(int)": 2
   },
-  "day(MyData::Day_t [2])": [
+  "day_enum(enum MyData::Day_t [2])": [
     "MyData::Mon",
     "MyData::Sat"
   ]

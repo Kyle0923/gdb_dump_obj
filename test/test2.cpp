@@ -11,8 +11,9 @@ class MyData {
     int i_data = 1;
     float f_data = 3.14;
     char* p = nullptr;
+    const char* str = "const string";
     Nested_t nested;
-    Day_t day[2] = {Mon, Sat};
+    Day_t day_enum[2] = {Mon, Sat};
 };
 
 void anchor() {

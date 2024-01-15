@@ -1,25 +1,34 @@
 #include <string>
 #include <vector>
+#include <list>
 #include <map>
 #include <set>
 #include <utility>
 
 class MyDataClass {
-    enum Month_t {
-        Jan, Feb, Mar, Apr, May, Jun, Jul, Aug
-    };
-    int i_data = 1;
+    int i_data[2] = {1, 2};
     float f_data = 3.14;
-    Month_t mm[3] = {Jan, Feb, Aug};
 };
 
 class MyBaseClass {
 public:
-    int value = 10;
+    int base_value = 1;
     virtual ~MyBaseClass() {} // Make the base class polymorphic
 };
+MyBaseClass g_base_obj;
 
-class MyDerivedClass : public MyBaseClass {
+class MyBaseClass2 {
+public:
+    struct Nested_t
+    {
+        int nested_int = 3;
+    };
+    int base2_value = 2;
+    Nested_t nested;
+
+};
+
+class MyDerivedClass : public MyBaseClass, public MyBaseClass2 {
     enum class Day_t {
         Mon,
         Tue,
@@ -34,20 +43,37 @@ class MyDerivedClass : public MyBaseClass {
         float f_val;
     };
 
-    Day_t dd[2] = {Day_t::Sat, Day_t::Wed};
-    MyDataClass data[2];
-    int der_value = 20;
-    int list[3] = {1,2,3};
-    std::string a_str = "value0";
-    std::string my_str[4] = {"value1", "value2", "value3", "value4"};
-    char* p = nullptr;
-    const char char_arr[12] = {'s', 't', 'r', 'i', 'n', 'g', ' ', 'c', 'o', 'n', 's', 't'};
-    const char* str = "string const";
+    Day_t day_enum = Day_t::Fri;
+    Day_t days[2] = {Day_t::Sat, Day_t::Wed};
+    MyDataClass data;
+    MyDataClass data_list[2];
+
     Num_t num_union = {.int_val = 1};
+
+    int i_value = -20;
+    unsigned int uint_value = 10;
+    int list[3] = {1,2,3};
+
+    float f_val = 3.3;
+    double d_val = 3.3;
+
+    MyBaseClass* ptr = &g_base_obj;
+    int* null_int_ptr = nullptr;
+    unsigned int* uint_ptr = &uint_value;
+
+    std::string std_str = "C++ string";
+    std::string str_array[4] = {"value1", "value2", "value3", "value4"};
+    char* char_ptr = nullptr;
+    const char char_arr[10] = {'n' ,'o', 't', ' ', 's', 't', 'r', 'i', 'n', 'g'};
+    const char char_str[9] = "C string";
+    const char* c_str = "C string";
+
+
     std::pair<int, float> pair_val = {0, 3.1415};
-    std::vector<int> vec = {1,2,3};
-    std::map<std::string, float> m = { {"1", 1.1}, {"2", 2.2}, {"3",3.3}};
-    std::set<Day_t> s = {Day_t::Mon, Day_t::Sat, Day_t::Thurs};
+    std::vector<int> vec = {1, 2, 3};
+    std::list<float> linklist = {-1.1, -2.2, -3.3};
+    std::map<std::string, float> std_map = { {"1", 1.1}, {"2", 2.2}, {"3",3.3}};
+    std::set<Day_t> std_set = {Day_t::Mon, Day_t::Sat, Day_t::Thurs};
 };
 
 void anchor() {
