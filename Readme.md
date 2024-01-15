@@ -9,8 +9,8 @@ Tested POD, union, stl, std::string, Enum and Class with virtual inheritance
 C-style strings (char[] and const char *) are treated as strings, if you are using them as buffers, you need to change the handling for these types  
 
 # usage
-Simply add `-x dump_obj.py` option when starting gdb, e.g., `gdb -x dump_obj.py test/test1`, then once you reach a breakpoint the object of interest is available,   
-use command `dump-obj {variable name}` to dump the JSON representation of the object  
+You need to load the script by CLI `-x` option, e.g., `gdb -x dump_obj.py test/test1`, or use source command in GDB, `source dump_obj.py`   
+Then you can use it in the same way as the `print` command. `dump-obj {variable name}`, this will print out the JSON representation of the object  
 
 Alternatively, you can create a `driver_func()` similar to the one in dump_obj.py to set up the debugging context  
 then run gdb: `gdb -x dump_obj.py` to automatic the process, you can also use the gdb command text file to achieve the same automation  
