@@ -1,9 +1,17 @@
 #include <string>
-#include <vector>
-#include <list>
-#include <map>
-#include <set>
 #include <utility>
+#include <vector>
+#include <deque>
+#include <forward_list>
+#include <list>
+#include <stack>
+#include <queue>
+#include <set>
+#include <unordered_set>
+#include <map>
+#include <unordered_map>
+
+
 
 class MyDataClass {
     int i_data[2] = {1, 2};
@@ -71,10 +79,27 @@ class MyDerivedClass : public MyBaseClass, public MyBaseClass2 {
 
 
     std::pair<int, float> pair_val = {0, 3.1415};
+    std::tuple<int, float, MyDataClass> tuple_val = {0, 3.1415, {}};
+
+    std::array<int, 2> std_array = {1, 2};
     std::vector<int> vec = {1, 2, 3};
+    std::deque<int> dque = {4, 5, 6};
     std::list<float> linklist = {-1.1, -2.2, -3.3};
-    std::map<std::string, float> std_map = { {"1", 1.1}, {"2", 2.2}, {"3",3.3}};
-    std::set<Day_t> std_set = {Day_t::Mon, Day_t::Sat, Day_t::Thurs};
+    std::forward_list<float> forwd_linklist = {-1.1, -2.2, -3.3};
+
+    std::stack<int> st = std::stack<int>(dque);
+    std::queue<int> que = std::queue<int>(dque);
+    std::priority_queue<int> pri_que = std::priority_queue<int>(dque.begin(), dque.end());
+
+    std::set<int> std_set =               {2,2,1,3};
+    std::multiset<int> m_set =            {2,2,1,3};
+    std::unordered_set<int> u_set =       {2,2,1,3};
+    std::unordered_multiset<int> um_set = {2,2,1,3};
+
+    std::map<int, float> std_map =               { {1, 1.1}, {2, 2.2}, {1, 1.1} };
+    std::multimap<int, float> m_map =            { {1, 1.1}, {2, 2.2}, {1, 1.1} };
+    std::unordered_map<int, float> u_map =       { {1, 1.1}, {2, 2.2}, {1, 1.1} };
+    std::unordered_multimap<int, float> um_map = { {1, 1.1}, {2, 2.2}, {1, 1.1} };
 };
 
 void anchor() {

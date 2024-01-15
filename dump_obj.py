@@ -14,6 +14,7 @@ import json
 # https://sourceware.org/gdb/current/onlinedocs/gdb.html/Types-In-Python.html
 # https://sourceware.org/gdb/current/onlinedocs/gdb.html/Values-From-Inferior.html
 
+
 class DumpObj(gdb.Command):
 
     def __init__(self):
@@ -22,9 +23,7 @@ class DumpObj(gdb.Command):
     def complete(self, text, word):
         frame = gdb.selected_frame()
         block = gdb.block_for_pc(frame.pc())
-        # print(text)
         if block is not None:
-            # print(11111)
             symbols = [sym.name for sym in block if sym.is_variable and sym.name.startswith(text)]
             return symbols
         else:
@@ -42,8 +41,6 @@ class DumpObj(gdb.Command):
         return obj_dict
 
     def dump_obj_impl(self, value_obj:gdb.Value, type_obj:gdb.Type):
-
-        char_arr_reg = re.compile('char \[\d*\]')
 
         if f'{type_obj}' in ['const char', 'char']:
             return chr(value_obj)
@@ -64,7 +61,7 @@ class DumpObj(gdb.Command):
                 return "((nullptr))"
             return value_obj.string()
 
-        if char_arr_reg.search(f'{type_obj}') and int(value_obj[int(type_obj.range()[1])]) == 0:
+        if re.search('char \[\d*\]', f'{type_obj}') and int(value_obj[int(type_obj.range()[1])]) == 0:
             # char [] and the last char is \0
             return value_obj.string()
 
@@ -139,26 +136,32 @@ class DumpObj(gdb.Command):
                 return f'enum {type_name}'
             return type_name
 
-        std_containers = ['map', 'unordered_map', 'vector', 'set', 'unordered_set']
-        std_containers = ['std::' + e for e in std_containers]
+        map_containers = ['map', 'multimap', 'unordered_map', 'unordered_multimap']
+        map_containers = ['std::' + ele for ele in map_containers]
+
+        std_containers = ['vector', 'deque', 'forward_list', 'stack', 'queue', 'priority_queue', \
+                          'set', 'multiset', 'unordered_set', 'unordered_multiset']
+        std_containers = ['std::' + ele for ele in std_containers]
+        std_containers.extend(map_containers)
         if any([type_name.startswith(container) for container in std_containers]):
-            if type_name.startswith('std::map') or type_name.startswith('std::unordered_map'):
+            if any([type_name.startswith(container) for container in map_containers]):
+                # map types have 2 template params
                 template = DumpObj.get_template_arg(type_obj, 2)
             else:
                 template = DumpObj.get_template_arg(type_obj, 1)
             container = type_name.split('<')[0]
             return f'{container}<{template}>'
 
-        if "::list<" in type_name:
+        if type_name.startswith('std::list<') or re.search('^std::[^,]+::list<', type_name):
             container = 'std::list'
-            template = DumpObj.get_template_arg(type_obj)
+            template = DumpObj.get_template_arg(type_obj, 1)
             return f'{container}<{template}>'
 
         return type_name
 
     # return the type args in C++ template
     @staticmethod
-    def get_template_arg(type_obj:gdb.Type, num = 1):
+    def get_template_arg(type_obj:gdb.Type, num):
         template_args = f'{type_obj.template_argument(0)}'
         for i in range(1, num):
             template_args += ', ' + f'{type_obj.template_argument(i)}'
