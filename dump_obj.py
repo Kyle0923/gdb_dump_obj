@@ -53,11 +53,7 @@ def dump_obj_impl(value_obj:gdb.Value, type_obj:gdb.Type):
         return trim_str(value_obj.format_string())
 
     if type_obj.code == gdb.TYPE_CODE_PTR:
-        addr = int(value_obj)
-        if (addr == 0):
-            return "((nullptr))"
-        target_type = value_obj.dereference()
-        return f'{format_type_name(target_type)} object @ {hex(addr)}'
+        return ptr_info(value_obj)
 
     if type_obj.code == gdb.TYPE_CODE_ARRAY:
         # Convert array to a Python list
@@ -72,6 +68,25 @@ def dump_obj_impl(value_obj:gdb.Value, type_obj:gdb.Type):
 
     # Default case: Convert to string
     return value_obj.format_string()
+
+def ptr_info(ptr_obj:gdb.Value):
+    addr = int(ptr_obj)
+    if (addr == 0):
+        return "((nullptr))"
+    target = ptr_obj.dereference()
+    if target.type.code in [gdb.TYPE_CODE_INT, gdb.TYPE_CODE_FLT]:
+        # number type
+        value = target.format_string()
+    else:
+        symbol = gdb.execute('info symbol {}'.format(addr), to_string=True)
+        if symbol.startswith('No symbol'):
+            # member variables would not be able to look up symbol
+            value = 'anonymous'
+        else:
+            # only global scope variable would have this
+            value = symbol.strip().split(' ')[0]
+    return f'{value}({format_type_name(target)}) @ {hex(addr)}'
+
 
 def convert_struct(value_obj:gdb.Value, type_obj:gdb.Type):
     # Convert struct to a Python dictionary
@@ -157,8 +172,8 @@ def driver_func():
     print(json.dumps(obj_dict))
     print()
 
-    # gdb.execute('c')
-    # gdb.execute('quit')
+    gdb.execute('c')
+    gdb.execute('quit')
 
 driver_func()
 

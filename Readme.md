@@ -15,6 +15,8 @@ then run gdb: `gdb -q -ex "source dump_obj.py"`
 # Example
 C++ code
 ```
+class Global_data {};
+Global_data g_data;
 class MyData {
     enum Day_t {
         Mon, Tue, Wed, Thu, Fri, Sat, Sun
@@ -30,6 +32,9 @@ class MyData {
     const char* str = "const string";
     Nested_t nested;
     Day_t day_enum[2] = {Mon, Sat};
+    int* i_ptr = &nested.nested_int;
+    Global_data* g_ptr = &g_data;
+    Nested_t* member_ptr = &nested;
 };
 
 MyDataClass obj;
@@ -48,7 +53,10 @@ This will generate the following JSON string (formatted externally)
   "day_enum(enum MyData::Day_t [2])": [
     "MyData::Mon",
     "MyData::Sat"
-  ]
+  ],
+  "i_ptr(int *)": "2(int) @ 0x7fffffffdfe8",
+  "g_ptr(Global_data *)": "g_data(Global_data) @ 0x555555558011",
+  "member_ptr(MyData::Nested_t *)": "anonymous(MyData::Nested_t) @ 0x7fffffffdfe8"
 }
 ```
 

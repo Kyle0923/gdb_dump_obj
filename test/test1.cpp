@@ -57,9 +57,10 @@ class MyDerivedClass : public MyBaseClass, public MyBaseClass2 {
     float f_val = 3.3;
     double d_val = 3.3;
 
-    MyBaseClass* ptr = &g_base_obj;
     int* null_int_ptr = nullptr;
     unsigned int* uint_ptr = &uint_value;
+    MyBaseClass* b_ptr = &g_base_obj;
+    MyDataClass* d_ptr = &data;
 
     std::string std_str = "C++ string";
     std::string str_array[4] = {"value1", "value2", "value3", "value4"};

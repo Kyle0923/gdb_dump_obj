@@ -1,3 +1,5 @@
+class Global_data {};
+Global_data g_data;
 
 class MyData {
     enum Day_t {
@@ -14,6 +16,9 @@ class MyData {
     const char* str = "const string";
     Nested_t nested;
     Day_t day_enum[2] = {Mon, Sat};
+    int* i_ptr = &nested.nested_int;
+    Global_data* g_ptr = &g_data;
+    Nested_t* member_ptr = &nested;
 };
 
 void anchor() {
