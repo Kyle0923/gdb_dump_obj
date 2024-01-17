@@ -17,6 +17,7 @@ class MyDataClass {
     int i_data[2] = {1, 2};
     float f_data = 3.14;
 };
+constexpr MyDataClass const_data;
 
 class MyBaseClass {
 public:
@@ -37,6 +38,7 @@ public:
 };
 
 class MyDerivedClass : public MyBaseClass, public MyBaseClass2 {
+public:
     enum class Day_t {
         Mon,
         Tue,
@@ -51,6 +53,9 @@ class MyDerivedClass : public MyBaseClass, public MyBaseClass2 {
         float f_val;
     };
 
+    static int static_value;
+    static int* ptr_static_value;
+
     Day_t day_enum = Day_t::Fri;
     Day_t days[2] = {Day_t::Sat, Day_t::Wed};
     MyDataClass data;
@@ -59,16 +64,25 @@ class MyDerivedClass : public MyBaseClass, public MyBaseClass2 {
     Num_t num_union = {.int_val = 1};
 
     int i_value = -20;
+    long long_value = -1e10;
     unsigned int uint_value = 10;
+    unsigned long ulong_value = 1e10;
     int list[3] = {1,2,3};
 
     float f_val = 3.3;
     double d_val = 3.3;
 
+
     int* null_int_ptr = nullptr;
     unsigned int* uint_ptr = &uint_value;
-    MyBaseClass* b_ptr = &g_base_obj;
-    MyDataClass* d_ptr = &data;
+    unsigned int** secd_ptr = &uint_ptr;
+
+    MyBaseClass* ptr_global = &g_base_obj;
+    const MyDataClass* ptr_const = &const_data;
+    MyDataClass* ptr_stack = &data;
+    MyDataClass* ptr_heap = new MyDataClass();
+
+    MyBaseClass* base_ptr = this; // should print dynamic type
 
     std::string std_str = "C++ string";
     std::string str_array[4] = {"value1", "value2", "value3", "value4"};
@@ -76,7 +90,6 @@ class MyDerivedClass : public MyBaseClass, public MyBaseClass2 {
     const char char_arr[10] = {'n' ,'o', 't', ' ', 's', 't', 'r', 'i', 'n', 'g'};
     const char char_str[9] = "C string";
     const char* c_str = "C string";
-
 
     std::pair<int, float> pair_val = {0, 3.1415};
     std::tuple<int, float, MyDataClass> tuple_val = {0, 3.1415, {}};
@@ -100,7 +113,14 @@ class MyDerivedClass : public MyBaseClass, public MyBaseClass2 {
     std::multimap<int, float> m_map =            { {1, 1.1}, {2, 2.2}, {1, 1.1} };
     std::unordered_map<int, float> u_map =       { {1, 1.1}, {2, 2.2}, {1, 1.1} };
     std::unordered_multimap<int, float> um_map = { {1, 1.1}, {2, 2.2}, {1, 1.1} };
+
+    ~MyDerivedClass() {
+        delete ptr_heap;
+    }
 };
+
+int MyDerivedClass::static_value = 1;
+int* MyDerivedClass::ptr_static_value = &MyDerivedClass::static_value;
 
 void anchor() {
     // as an anchor point for gdb break point

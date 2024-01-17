@@ -57,16 +57,16 @@ class DumpObj(gdb.Command):
             return value_obj.string()
 
         if ('const char *' == f'{type_obj}'):
+            # C-string
             if (int(value_obj) == 0):
                 return "((nullptr))"
             return value_obj.string()
 
         if re.search('char \[\d*\]', f'{type_obj}') and int(value_obj[int(type_obj.range()[1])]) == 0:
-            # char [] and the last char is \0
+            # char [] and the last char is \0 => C-string
             return value_obj.string()
 
         if 'std::string' == f'{type_obj}':
-            # std::string
             return DumpObj.trim_str(value_obj.format_string())
 
         if type_obj.code == gdb.TYPE_CODE_PTR:
@@ -78,9 +78,11 @@ class DumpObj(gdb.Command):
             return [self.dump_obj_impl(value_obj[i], value_obj[i].type) for i in range(size)]
 
         if DumpObj.is_stl(type_obj):
+            # rely on the build-in stl printing
             return value_obj.format_string()
 
         if type_obj.code == gdb.TYPE_CODE_STRUCT:
+            # Convert struct to a Python dictionary
             return self.convert_struct(value_obj, type_obj)
 
         # Default case: Convert to string
@@ -91,18 +93,29 @@ class DumpObj(gdb.Command):
         if (addr == 0):
             return "((nullptr))"
         target = ptr_obj.dereference()
+        value = ""
         if target.type.code in [gdb.TYPE_CODE_INT, gdb.TYPE_CODE_FLT]:
-            # number type
+            # numeric types
             value = target.format_string()
+
+        symbol = gdb.execute('info symbol {}'.format(addr), to_string=True)
+        if symbol.startswith('No symbol'):
+            # stack/heap objects would not be able to look up symbol
+            name = ''
         else:
-            symbol = gdb.execute('info symbol {}'.format(addr), to_string=True)
-            if symbol.startswith('No symbol'):
-                # member variables would not be able to look up symbol
-                value = 'anonymous'
-            else:
-                # only global scope variable would have this
-                value = symbol.strip().split(' ')[0]
-        return f'{value}({self.format_type_name(target)}) @ {hex(addr)}'
+            # data segment objects can be looked up
+            name = symbol.strip().split(' ')[0]
+
+        if value != '':
+            # numeric types
+            return f'{name}(value={value}) @ {hex(addr)}'
+        elif f'{target.type}' != f'{target.dynamic_type}':
+            # dynamic types
+            return f'{name}(dyn type: {self.format_type_name(target, target.dynamic_type)}) @ {hex(addr)}'
+        elif name:
+            return f'{name} @ {hex(addr)}'
+        else:
+            return f'{hex(addr)}'
 
     def convert_struct(self, value_obj:gdb.Value, type_obj:gdb.Type):
         # Convert struct to a Python dictionary
@@ -121,9 +134,12 @@ class DumpObj(gdb.Command):
                 result[f'{field_name}({type_name})'] = self.dump_obj_impl(field_value, field.type)
         return result
 
-    # pretty-print type names
-    def format_type_name(self, value_obj:gdb.Value):
-        type_obj = value_obj.type
+    # type_obj for dynamic objects
+    def format_type_name(self, value_obj:gdb.Value, type_obj:gdb.Type=None):
+
+        if (type_obj == None):
+            type_obj = value_obj.type
+
         type_name = f'{type_obj}'
 
         type_name = type_name.replace(DumpObj.get_std_string_type(), "std::string")
