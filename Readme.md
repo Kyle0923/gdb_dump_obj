@@ -2,11 +2,13 @@
 A GDB-Python script that converts the C/C++ object specified by obj_name to a Python dictionary object which allows for json print out or other processing afterward
 
 Important!!  
-**Remeber to compile the C++ code with `-g` debug option**
+**Remeber to compile the C/C++ code with `-g` debug option**
 
 Tested POD, union, stl, std::string, Enum and Class with virtual inheritance
 
 C-style strings (char[] and const char *) are treated as strings, if you are using them as buffers, you need to change the handling for these types  
+
+My test environment is `Ubuntu 22.04` with `GDB 12.1` and `gcc 11.4.0`. GDB may behave differently for different version on different OS.
 
 # usage
 You need to load the script by CLI `-x` option, e.g., `gdb -x dump_obj.py test/test1`, or use source command in GDB, `source dump_obj.py`   
@@ -57,9 +59,9 @@ This will generate the following JSON string (formatted externally)
     "MyData::Mon",
     "MyData::Sat"
   ],
-  "i_ptr(int *)": "2(int) @ 0x7fffffffdfe8",
-  "g_ptr(Global_data *)": "g_data(Global_data) @ 0x555555558011",
-  "member_ptr(MyData::Nested_t *)": "anonymous(MyData::Nested_t) @ 0x7fffffffdfe8"
+  "i_ptr(int *)": "(value=2) @ 0x7fffffffdfe8",
+  "g_ptr(Global_data *)": "g_data @ 0x555555558011",
+  "member_ptr(MyData::Nested_t *)": "0x7fffffffdfe8"
 }
 ```
 
