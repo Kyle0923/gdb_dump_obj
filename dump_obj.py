@@ -142,7 +142,7 @@ class DumpObj(gdb.Command):
 
         type_name = f'{type_obj}'
 
-        type_name = type_name.replace(DumpObj.get_std_string_type(), "std::string")
+        type_name = DumpObj.replace_std_string(type_name)
         if (type_obj.code == gdb.TYPE_CODE_UNION):
             return f'union {type_name}'
         if (type_obj.code == gdb.TYPE_CODE_ENUM):
@@ -181,15 +181,19 @@ class DumpObj(gdb.Command):
         template_args = f'{type_obj.template_argument(0)}'
         for i in range(1, num):
             template_args += ', ' + f'{type_obj.template_argument(i)}'
-        template_args = template_args.replace(DumpObj.get_std_string_type(), "std::string")
+        template_args = DumpObj.replace_std_string(template_args)
         return template_args
 
     @staticmethod
-    def get_std_string_type():
+    def replace_std_string(type_name:str):
         if not hasattr(DumpObj, 'std_string_type'):
-            string_type = gdb.lookup_type('std::string')
+            try:
+                string_type = gdb.lookup_type('std::string')
+            except gdb.error:
+                return type_name
             DumpObj.std_string_type = f'{string_type.strip_typedefs()}'
-        return DumpObj.std_string_type
+
+        return type_name.replace(DumpObj.std_string_type, "std::string")
 
     @staticmethod
     def is_stl(type_obj:gdb.Type):
